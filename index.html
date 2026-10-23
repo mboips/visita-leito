@@ -1564,8 +1564,6 @@
             width: 100%;
             max-width: 410px;
             margin: auto;
-            position: relative;
-            z-index: 1;
             background: rgba(255, 255, 255, 0.93);
             -webkit-backdrop-filter: blur(14px);
             backdrop-filter: blur(14px);
@@ -1580,21 +1578,10 @@
             from { opacity: 0; transform: translateY(22px) scale(0.97); }
             to   { opacity: 1; transform: translateY(0) scale(1); }
         }
-        /* banner do hospital: fica ATRÁS do cartão de login, ocupando o topo da tela */
-        .login-banner {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;
-            height: 34vh;
-            min-height: 160px;
-            object-fit: cover;
-            object-position: center;
-            z-index: 0;
-            opacity: 0.95;
-            -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
-            mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
-            pointer-events: none;
-            user-select: none;
+        .login-logo {
+            width: 74px; height: 74px; margin: 0 auto 14px;
+            border-radius: 20px; object-fit: cover; display: block;
+            box-shadow: 0 10px 26px rgba(2, 132, 199, 0.28), 0 0 0 4px rgba(255,255,255,0.9);
         }
         .login-eyebrow {
             display: inline-flex; align-items: center; gap: 7px;
@@ -1688,8 +1675,8 @@
 
     <!-- TELA DE ACESSO — nada do sistema é carregado antes da senha -->
     <div id="loginGate">
-        <img class="login-banner" src="https://i.imgur.com/rLkFPeY.jpeg" alt="" aria-hidden="true">
         <div class="login-box">
+            <img class="login-logo" src="https://i.imgur.com/rLkFPeY.jpeg" alt="Hospital M'Boi Mirim">
             <span class="login-eyebrow"><i class="fa-solid fa-lock"></i> Acesso restrito</span>
             <h2>Visita à Beira-Leito</h2>
             <p class="login-sub">Hospital M'Boi Mirim<br>Informe a senha da liderança para entrar.</p>
