@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src https://hkflayzpnwuflqkczqfc.supabase.co; base-uri 'self'; form-action 'self'">
-    <title>Clinical Hub | Neo-Hospital Command Center</title>
+    <title>Visita Beira Leito - M BOI</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
@@ -1535,28 +1535,123 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            background: linear-gradient(160deg, #060c18 0%, #0b1526 45%, #071a1c 100%);
+            overflow-y: auto;
+            background: #08111f;
+            isolation: isolate;
+        }
+        /* foto do hospital ao fundo, desfocada */
+        #loginGate::before {
+            content: '';
+            position: fixed;
+            inset: -40px;
+            z-index: -2;
+            background: url('https://www.hmbm.org.br/wp-content/uploads/2019/09/foto-Fachada-MBoiMirim-450x255.jpg') center / cover no-repeat;
+            filter: blur(10px) saturate(1.1);
+            transform: scale(1.06);
+        }
+        /* película escura em degradê por cima da foto, para dar leitura e clima */
+        #loginGate::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 20% 15%, rgba(2,132,199,0.35), transparent 55%),
+                radial-gradient(circle at 85% 85%, rgba(15,118,110,0.40), transparent 55%),
+                linear-gradient(160deg, rgba(6,12,24,0.72) 0%, rgba(8,24,40,0.62) 50%, rgba(6,30,32,0.74) 100%);
         }
         .login-box {
             width: 100%;
-            max-width: 380px;
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 30px 26px;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            max-width: 410px;
+            margin: auto;
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.93);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 26px;
+            padding: 32px 28px 24px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(2,132,199,0.08);
             text-align: center;
+            animation: loginEntrada 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
-        .login-box .login-ico {
-            width: 52px; height: 52px; margin: 0 auto 14px;
-            border-radius: 14px; background: #e0f2fe; color: #0369a1;
-            display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+        @keyframes loginEntrada {
+            from { opacity: 0; transform: translateY(22px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .login-box h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
-        .login-box p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5; }
+        /* banner do hospital: fica ATRÁS do cartão de login, ocupando o topo da tela */
+        .login-banner {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 34vh;
+            min-height: 160px;
+            object-fit: cover;
+            object-position: center;
+            z-index: 0;
+            opacity: 0.95;
+            -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+            mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+            pointer-events: none;
+            user-select: none;
+        }
+        .login-eyebrow {
+            display: inline-flex; align-items: center; gap: 7px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.64rem; font-weight: 700;
+            letter-spacing: 1.2px; text-transform: uppercase; color: #0369a1; margin-bottom: 8px;
+        }
+        .login-eyebrow i { font-size: 0.6rem; }
+        .login-box h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.01em; color: var(--text-main); }
+        .login-box p.login-sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.55; }
         .login-box .form-group-cyber { text-align: left; }
-        #loginMsg { color: var(--danger); font-size: 0.8rem; font-weight: 600; min-height: 18px; margin-top: 8px; }
+        .login-senha-wrap { position: relative; }
+        .login-senha-wrap .form-control-cyber { padding-right: 46px; }
+        .btn-olho {
+            position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+            width: 34px; height: 34px; border: none; background: transparent; cursor: pointer;
+            color: var(--text-muted); border-radius: 8px; font-size: 0.95rem;
+        }
+        .btn-olho:hover { color: var(--primary); background: rgba(2,132,199,0.08); }
+        #loginMsg { color: var(--danger); font-size: 0.8rem; font-weight: 600; min-height: 18px; margin-top: 10px; }
+
+        /* "não sei a senha" -> WhatsApp */
+        .login-divisor {
+            display: flex; align-items: center; gap: 10px; margin: 16px 0 12px;
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted);
+        }
+        .login-divisor::before, .login-divisor::after { content: ''; flex: 1; height: 1px; background: var(--border-glass); }
+        .btn-whatsapp {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 12px 14px; border-radius: var(--radius-sm);
+            background: #25d366; color: #fff; text-decoration: none;
+            font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 0.88rem;
+            box-shadow: 0 6px 18px rgba(37, 211, 102, 0.32);
+            transition: var(--transition);
+        }
+        .btn-whatsapp:hover { background: #1fbd5a; transform: translateY(-1px); box-shadow: 0 8px 22px rgba(37, 211, 102, 0.42); }
+        .btn-whatsapp i { font-size: 1.25rem; }
+        .login-ajuda { font-size: 0.72rem; color: var(--text-muted); margin-top: 8px; line-height: 1.45; }
         .login-aviso {
-            margin-top: 16px; font-size: 0.7rem; color: var(--text-muted); line-height: 1.5;
+            margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-glass);
+            font-size: 0.68rem; color: var(--text-muted); line-height: 1.55;
+        }
+        .login-aviso i { color: #d97706; margin-right: 4px; }
+        @media (max-width: 420px) {
+            .login-box { padding: 26px 20px 20px; border-radius: 22px; }
+            .login-box h2 { font-size: 1.2rem; }
+        }
+        @media (prefers-reduced-motion: reduce) { .login-box { animation: none; } }
+
+        /* fundo com a foto do hospital também na tela de escolha do setor */
+        #introSplash::before {
+            content: '';
+            position: absolute;
+            inset: -30px;
+            background: url('https://www.hmbm.org.br/wp-content/uploads/2019/09/foto-Fachada-MBoiMirim-450x255.jpg') center / cover no-repeat;
+            filter: blur(12px);
+            opacity: 0.28;
+            transform: scale(1.06);
         }
 
         /* ===== AVISO DE PRIVACIDADE (LGPD) ===== */
@@ -1593,19 +1688,33 @@
 
     <!-- TELA DE ACESSO — nada do sistema é carregado antes da senha -->
     <div id="loginGate">
+        <img class="login-banner" src="https://i.imgur.com/rLkFPeY.jpeg" alt="" aria-hidden="true">
         <div class="login-box">
-            <div class="login-ico"><i class="fa-solid fa-lock"></i></div>
-            <h2>Acesso restrito</h2>
-            <p>Sistema de Visita à Beira-Leito — Hospital M'Boi Mirim.<br>Informe a senha da liderança para entrar.</p>
+            <span class="login-eyebrow"><i class="fa-solid fa-lock"></i> Acesso restrito</span>
+            <h2>Visita à Beira-Leito</h2>
+            <p class="login-sub">Hospital M'Boi Mirim<br>Informe a senha da liderança para entrar.</p>
             <form onsubmit="entrar(event)" autocomplete="off">
                 <div class="form-group-cyber">
                     <label for="loginSenha">Senha</label>
-                    <input type="password" id="loginSenha" class="form-control-cyber" autocomplete="off" required>
+                    <div class="login-senha-wrap">
+                        <input type="password" id="loginSenha" class="form-control-cyber" autocomplete="off" required>
+                        <button type="button" class="btn-olho" id="btnOlho" onclick="alternarVisibilidadeSenha()" title="Mostrar ou ocultar a senha" aria-label="Mostrar ou ocultar a senha">
+                            <i class="fa-regular fa-eye" id="iconeOlho"></i>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" id="loginBtn" class="cyber-btn"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
                 <div id="loginMsg" role="alert"></div>
             </form>
-            <div class="login-aviso">Este sistema trata dados assistenciais (LGPD, Lei 13.709/2018). Nunca registre nome, CPF, telefone ou prontuário de paciente. A sessão encerra sozinha após 15 minutos sem uso.</div>
+
+            <div class="login-divisor">Não sabe a senha?</div>
+            <a class="btn-whatsapp" target="_blank" rel="noopener noreferrer"
+               href="https://wa.me/5511977000212?text=Ol%C3%A1%2C%20tudo%20bem%3F%20Gostaria%20de%20acesso%20ao%20site%2C%20poderia%20me%20passar%20a%20senha%20para%20acesso%3F">
+                <i class="fa-brands fa-whatsapp"></i> Pedir a senha pelo WhatsApp
+            </a>
+            <div class="login-ajuda">Abre uma conversa já com a mensagem pronta. Basta enviar.</div>
+
+            <div class="login-aviso"><i class="fa-solid fa-shield-halved"></i>Este sistema trata dados assistenciais (LGPD, Lei 13.709/2018). Nunca registre nome, CPF, telefone ou prontuário de paciente. A sessão encerra sozinha após 15 minutos sem uso.</div>
         </div>
     </div>
 
@@ -2021,6 +2130,14 @@
         }
         ['click', 'keydown', 'mousemove', 'touchstart', 'scroll'].forEach(ev =>
             document.addEventListener(ev, reiniciarTimerInatividade, { passive: true, capture: true }));
+
+        function alternarVisibilidadeSenha() {
+            const campo = document.getElementById('loginSenha');
+            const icone = document.getElementById('iconeOlho');
+            const mostrar = campo.type === 'password';
+            campo.type = mostrar ? 'text' : 'password';
+            icone.className = mostrar ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+        }
 
         async function entrar(event) {
             event.preventDefault();
