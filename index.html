@@ -1592,17 +1592,14 @@
         .login-box h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.01em; color: var(--text-main); }
         .login-box p.login-sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.55; }
         .login-box .form-group-cyber { text-align: left; }
-        .login-senha-wrap { position: relative; }
-        .login-senha-wrap .form-control-cyber { padding-right: 46px; }
-        .btn-olho {
-            position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
-            width: 34px; height: 34px; border: none; background: transparent; cursor: pointer;
-            color: var(--text-muted); border-radius: 8px; font-size: 0.95rem;
-        }
-        .btn-olho:hover { color: var(--primary); background: rgba(2,132,199,0.08); }
         #loginMsg { color: var(--danger); font-size: 0.8rem; font-weight: 600; min-height: 18px; margin-top: 10px; }
+        .btn-link-login {
+            background: transparent !important; color: var(--primary) !important;
+            box-shadow: none !important; margin-top: 4px;
+        }
+        .btn-link-login:hover { background: rgba(2,132,199,0.06) !important; }
 
-        /* "não sei a senha" -> WhatsApp */
+        /* "problemas para entrar?" -> WhatsApp */
         .login-divisor {
             display: flex; align-items: center; gap: 10px; margin: 16px 0 12px;
             font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted);
@@ -1673,31 +1670,37 @@
 </head>
 <body>
 
-    <!-- TELA DE ACESSO — nada do sistema é carregado antes da senha -->
+    <!-- TELA DE ACESSO — nada do sistema é carregado antes do login -->
     <div id="loginGate">
         <div class="login-box">
             <img class="login-logo" src="https://i.imgur.com/rLkFPeY.jpeg" alt="Hospital M'Boi Mirim">
             <span class="login-eyebrow"><i class="fa-solid fa-lock"></i> Acesso restrito</span>
             <h2>Visita à Beira-Leito</h2>
-            <p class="login-sub">Hospital M'Boi Mirim<br>Informe a senha da liderança para entrar.</p>
-            <form onsubmit="entrar(event)" autocomplete="off">
+            <p class="login-sub">Hospital M'Boi Mirim<br>Informe seu e-mail institucional para receber o código de acesso.</p>
+
+            <form id="formEmail" onsubmit="enviarCodigo(event)" autocomplete="on">
                 <div class="form-group-cyber">
-                    <label for="loginSenha">Senha</label>
-                    <div class="login-senha-wrap">
-                        <input type="password" id="loginSenha" class="form-control-cyber" autocomplete="off" required>
-                        <button type="button" class="btn-olho" id="btnOlho" onclick="alternarVisibilidadeSenha()" title="Mostrar ou ocultar a senha" aria-label="Mostrar ou ocultar a senha">
-                            <i class="fa-regular fa-eye" id="iconeOlho"></i>
-                        </button>
-                    </div>
+                    <label for="loginEmail">E-mail institucional</label>
+                    <input type="email" id="loginEmail" class="form-control-cyber" autocomplete="email" placeholder="nome@hmbm.org.br" required>
                 </div>
-                <button type="submit" id="loginBtn" class="cyber-btn"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
-                <div id="loginMsg" role="alert"></div>
+                <button type="submit" id="btnEnviarCodigo" class="cyber-btn"><i class="fa-solid fa-paper-plane"></i> Enviar código</button>
             </form>
 
-            <div class="login-divisor">Não sabe a senha?</div>
+            <form id="formCodigo" onsubmit="confirmarCodigo(event)" autocomplete="off" style="display:none">
+                <p class="login-sub" id="textoCodigoEnviado" style="margin-bottom:12px"></p>
+                <div class="form-group-cyber">
+                    <label for="loginCodigo">Código recebido</label>
+                    <input type="text" id="loginCodigo" class="form-control-cyber" inputmode="numeric" autocomplete="one-time-code" maxlength="10" pattern="[0-9]{6,10}" required>
+                </div>
+                <button type="submit" id="btnConfirmarCodigo" class="cyber-btn"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+                <button type="button" class="cyber-btn btn-link-login" onclick="voltarParaEmail()">Usar outro e-mail / reenviar</button>
+            </form>
+            <div id="loginMsg" role="alert"></div>
+
+            <div class="login-divisor">Problemas para entrar?</div>
             <a class="btn-whatsapp" target="_blank" rel="noopener noreferrer"
-               href="https://wa.me/5511977000212?text=Ol%C3%A1%2C%20tudo%20bem%3F%20Gostaria%20de%20acesso%20ao%20site%2C%20poderia%20me%20passar%20a%20senha%20para%20acesso%3F">
-                <i class="fa-brands fa-whatsapp"></i> Pedir a senha pelo WhatsApp
+               href="https://wa.me/5511977000212?text=Ol%C3%A1%2C%20tudo%20bem%3F%20Estou%20com%20problemas%20para%20entrar%20no%20site%20da%20Visita%20Beira-Leito.%20Poderia%20me%20ajudar%3F">
+                <i class="fa-brands fa-whatsapp"></i> Pedir ajuda pelo WhatsApp
             </a>
             <div class="login-ajuda">Abre uma conversa já com a mensagem pronta. Basta enviar.</div>
 
@@ -2069,32 +2072,85 @@
     </main>
 
     <script>
-        // O navegador não guarda mais chave de banco. Só conversa com esta API, que exige senha.
-        const API_URL = "https://hkflayzpnwuflqkczqfc.supabase.co/functions/v1/visitas-api";
+        // O navegador só guarda a chave pública (publishable) do Supabase. Ela só é segura porque as
+        // tabelas têm RLS ativo e sem policies: todo acesso a dados passa pela função visitas-api.
+        const SUPABASE_URL = "https://hkflayzpnwuflqkczqfc.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_RqV1Si7h7dpxQDn0ga7cKw_jwaChdHz";
+        const API_URL = SUPABASE_URL + "/functions/v1/visitas-api";
         const TEMPO_INATIVIDADE_MS = 15 * 60 * 1000; // sai sozinho após 15 min parado (computadores compartilhados)
 
-        // Sessão: só um código temporário, que some ao fechar a aba. Nenhum dado de paciente é guardado.
-        let tokenSessao = null;
+        // Sessão só em sessionStorage (some ao fechar a aba)
+        let sessao = null;
         try {
-            const salvo = JSON.parse(sessionStorage.getItem('sessaoVisita') || 'null');
-            if (salvo && salvo.exp > Date.now()) tokenSessao = salvo.token;
+            const s = JSON.parse(sessionStorage.getItem('sessaoVisita') || 'null');
+            if (s && s.refresh) sessao = s;
         } catch (e) {}
+        let tokenSessao = sessao ? sessao.access : null; // usado pelo restante do código (onload, timer)
 
-        async function chamarApi(action, dados) {
+        function salvarSessao(d) {
+            sessao = {
+                access: d.access_token,
+                refresh: d.refresh_token,
+                exp: Date.now() + (d.expires_in - 30) * 1000,
+                email: (d.user && d.user.email) || (sessao && sessao.email) || ''
+            };
+            tokenSessao = sessao.access;
+            try { sessionStorage.setItem('sessaoVisita', JSON.stringify(sessao)); } catch (e) {}
+        }
+
+        function traduzirErroAuth(c, status) {
+            const cod = c.error_code || c.code || '';
+            if (cod === 'over_email_send_rate_limit' || status === 429) return 'Aguarde um pouco antes de pedir outro código.';
+            if (cod === 'otp_expired' || cod === 'invalid_credentials' || status === 403) return 'Código inválido ou expirado.';
+            if (cod === 'validation_failed') return 'E-mail inválido.';
+            return c.msg || c.message || 'Não foi possível concluir. Tente novamente.';
+        }
+
+        async function authApi(caminho, corpo) {
+            let r;
+            try {
+                r = await fetch(SUPABASE_URL + '/auth/v1/' + caminho, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+                    body: JSON.stringify(corpo)
+                });
+            } catch (e) { throw new Error('Sem conexão com o servidor.'); }
+            let c = {};
+            try { c = await r.json(); } catch (e) {}
+            if (!r.ok) throw new Error(traduzirErroAuth(c, r.status));
+            return c;
+        }
+
+        let renovacaoEmAndamento = null;
+        function renovarSessao() {
+            if (!sessao) return Promise.reject(new Error('Sem sessão.'));
+            if (!renovacaoEmAndamento) {
+                renovacaoEmAndamento = authApi('token?grant_type=refresh_token', { refresh_token: sessao.refresh })
+                    .then(salvarSessao)
+                    .finally(() => { renovacaoEmAndamento = null; });
+            }
+            return renovacaoEmAndamento;
+        }
+
+        async function chamarApi(action, dados, jaTentou) {
+            if (sessao && Date.now() > sessao.exp) {
+                try { await renovarSessao(); } catch (e) { sairDoSistema(); throw new Error('Sessão expirada. Entre novamente.'); }
+            }
             let r;
             try {
                 r = await fetch(API_URL, {
                     method: 'POST',
-                    headers: Object.assign({ 'Content-Type': 'application/json' }, tokenSessao ? { 'x-app-token': tokenSessao } : {}),
+                    headers: Object.assign({ 'Content-Type': 'application/json' }, sessao ? { 'x-app-token': sessao.access } : {}),
                     body: JSON.stringify(Object.assign({ action: action }, dados || {})),
                     cache: 'no-store'
                 });
-            } catch (e) {
-                throw new Error('Sem conexão com o servidor.');
-            }
+            } catch (e) { throw new Error('Sem conexão com o servidor.'); }
             let corpo = {};
             try { corpo = await r.json(); } catch (e) {}
-            if (r.status === 401 && action !== 'login') {
+            if (r.status === 401) {
+                if (!jaTentou && sessao) {
+                    try { await renovarSessao(); return await chamarApi(action, dados, true); } catch (e) {}
+                }
                 sairDoSistema();
                 throw new Error('Sessão expirada. Entre novamente.');
             }
@@ -2103,9 +2159,14 @@
         }
 
         function sairDoSistema() {
+            if (sessao) { // avisa o Supabase para encerrar a sessão (sem travar a saída)
+                fetch(SUPABASE_URL + '/auth/v1/logout', {
+                    method: 'POST', keepalive: true,
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + sessao.access }
+                }).catch(() => {});
+            }
             try { sessionStorage.removeItem('sessaoVisita'); } catch (e) {}
-            tokenSessao = null;
-            dadosGlobais = [];
+            sessao = null; tokenSessao = null; dadosGlobais = [];
             location.reload(); // recarregar apaga da memória tudo o que estava na tela
         }
 
@@ -2118,34 +2179,47 @@
         ['click', 'keydown', 'mousemove', 'touchstart', 'scroll'].forEach(ev =>
             document.addEventListener(ev, reiniciarTimerInatividade, { passive: true, capture: true }));
 
-        function alternarVisibilidadeSenha() {
-            const campo = document.getElementById('loginSenha');
-            const icone = document.getElementById('iconeOlho');
-            const mostrar = campo.type === 'password';
-            campo.type = mostrar ? 'text' : 'password';
-            icone.className = mostrar ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye';
+        // ===== LOGIN POR CÓDIGO NO E-MAIL =====
+        let emailLogin = '';
+
+        async function enviarCodigo(event) {
+            event.preventDefault();
+            const msg = document.getElementById('loginMsg');
+            const btn = document.getElementById('btnEnviarCodigo');
+            emailLogin = document.getElementById('loginEmail').value.trim().toLowerCase();
+            msg.innerText = ''; btn.disabled = true;
+            try {
+                await authApi('otp', { email: emailLogin, create_user: true });
+                document.getElementById('textoCodigoEnviado').innerText = 'Enviamos um código para ' + emailLogin + '. Digite-o abaixo.';
+                document.getElementById('formEmail').style.display = 'none';
+                document.getElementById('formCodigo').style.display = 'block';
+                setTimeout(() => document.getElementById('loginCodigo').focus(), 100);
+            } catch (e) { msg.innerText = e.message; }
+            finally { btn.disabled = false; }
         }
 
-        async function entrar(event) {
+        async function confirmarCodigo(event) {
             event.preventDefault();
-            const campo = document.getElementById('loginSenha');
+            const campo = document.getElementById('loginCodigo');
             const msg = document.getElementById('loginMsg');
-            const btn = document.getElementById('loginBtn');
-            msg.innerText = '';
-            btn.disabled = true;
+            const btn = document.getElementById('btnConfirmarCodigo');
+            msg.innerText = ''; btn.disabled = true;
             try {
-                const r = await chamarApi('login', { senha: campo.value });
+                const d = await authApi('verify', { type: 'email', email: emailLogin, token: campo.value.trim() });
                 campo.value = '';
-                tokenSessao = r.token;
-                try { sessionStorage.setItem('sessaoVisita', JSON.stringify({ token: r.token, exp: r.expira })); } catch (e) {}
+                salvarSessao(d);
                 document.getElementById('loginGate').style.display = 'none';
                 reiniciarTimerInatividade();
                 carregarDadosDaPlanilha();
-            } catch (e) {
-                msg.innerText = e.message;
-            } finally {
-                btn.disabled = false;
-            }
+            } catch (e) { msg.innerText = e.message; }
+            finally { btn.disabled = false; }
+        }
+
+        function voltarParaEmail() {
+            document.getElementById('formCodigo').style.display = 'none';
+            document.getElementById('formEmail').style.display = 'block';
+            document.getElementById('loginCodigo').value = '';
+            document.getElementById('loginMsg').innerText = '';
         }
 
         // Valores gravados na coluna queixa_resolvida para cada status.
@@ -3050,14 +3124,14 @@
 
         window.onload = function() {
             restaurarEstadoSidebar();
-            // Sem sessão válida, nada é carregado: a tela de senha fica na frente.
+            // Sem sessão válida, nada é carregado: a tela de login fica na frente.
             if (tokenSessao) {
                 document.getElementById('loginGate').style.display = 'none';
                 reiniciarTimerInatividade();
                 carregarDadosDaPlanilha();
             } else {
                 document.getElementById('loginGate').style.display = 'flex';
-                setTimeout(() => { const s = document.getElementById('loginSenha'); if (s) s.focus(); }, 100);
+                setTimeout(() => { const s = document.getElementById('loginEmail'); if (s) s.focus(); }, 100);
             }
             // CORREÇÃO: o aviso de setor aparecia por cima da tela de introdução (antes de o usuário escolher)
             setTimeout(() => {
